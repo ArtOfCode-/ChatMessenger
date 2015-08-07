@@ -61,8 +61,8 @@
             Various <code>InvalidOperationException</code>s popping up. Various methods being called by others on other threads, and UI
             objects are complaining. Look for possible instances.
         </p>
-        <p><em>001: </em>Noting unresponsiveness after clicking client Send button. Possibly because send is not on a different thread. Add TODO. <tag fixed /> <tag bug /> <tag norepro /></p>
-        <p class="todo"><em>002: </em>Investigate strange messages - server appears to be sending back the client message <em>along with</em> the 201 Received. <tag todo /> <tag bug /></p>
+        <p><em>#1: </em>Noting unresponsiveness after clicking client Send button. Possibly because send is not on a different thread. <tag fixed /> <tag bug /> <tag norepro /></p>
+        <p><em>#2: </em>Investigate strange messages - server appears to be sending back the client message <em>along with</em> the 201 Received. <tag todo /> <tag bug /></p>
         <p>
             Written up some documentation for the <code>Protocol</code> class, since it's fairly convoluted and liable to be forgotten, even with the self-explanatory nature.
         </p>
@@ -70,8 +70,8 @@
     <span class="date">
         07/08/15
     </span>
-    <p>Tried to investigate 001, couldn't find the problem. Tagged: <tag norepro /> <tag fixed /></p>
+    <p>Tried to investigate #1, couldn't find the problem.</p>
     <p>Changed the <code>Client.ReceiveCallback</code> method to reset status on 101 as well. Was displaying "Sending" status from launch.</p>
-    <p>Decided to commit everything to a GH repo, to better keep track of the code changes and issues. Related: custom license. All rights reserved except GH right to fork.</p>
+    <p>Decided to commit everything to a <a href="https://github.com/ArtOfCode-/ChatMessenger">GH repo</a>, to better keep track of the code changes and issues. related custom license. all rights reserved except gh right to fork.</p>
 </body>
 </html>
