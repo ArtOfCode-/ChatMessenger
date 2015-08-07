@@ -1,0 +1,84 @@
+﻿body {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: normal;
+}
+
+div.log {
+    width: 90%;
+    padding: 4px;
+    font-weight: normal;
+}
+
+.todo {
+    background: rgb(250, 150, 90);
+    padding: 3px;
+}
+
+tag[todo]::after {
+    margin-left: 20px;
+    display: inline-block;
+    background: darkred;
+    border-radius: 3px;
+    padding: 4px;
+    color: white;
+    content: "status-todo";
+}
+
+tag[bug]::after {
+    margin-left: 20px;
+    display: inline-block;
+    background: gray;
+    border: rgb(50, 50, 50);
+    border-radius: 3px;
+    padding: 4px;
+    color: rgb(230, 230, 230);
+    content: "bug";
+}
+
+tag[norepro]::after {
+    margin-left: 20px;
+    display: inline-block;
+    background: darkred;
+    border-radius: 3px;
+    padding: 4px;
+    color: white;
+    content: "status-norepro";
+}
+
+tag[fixed]::after {
+    margin-left: 20px;
+    display: inline-block;
+    background: darkgreen;
+    border-radius: 3px;
+    padding: 4px;
+    color: white;
+    content: "fixed";
+}
+
+
+span.date {
+    display: block;
+    font-weight: bold;
+    font-size: 15px;
+    color: crimson;
+}
+
+p {
+    margin-left: 30px;
+}
+
+    p::before {
+        content: "• ";
+    }
+
+code {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    background: rgb(229, 229, 229);
+    border-radius: 3px;
+    padding: 0 2px;
+}
