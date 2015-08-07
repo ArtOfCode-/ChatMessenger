@@ -13,11 +13,11 @@ This document (the "Grant") is a record that I, the Author, grant You some right
 ### Your Rights
 1. The Software, as hosted on this website (http://github.com, or "GitHub"), is required by the Terms of Service of GitHub to grant to You the right to fork this repository. You are therefore permitted to fork this repository, and to host such forks on Your account on GitHub indefinitely, subject to the following terms:
 
-1a. You MUST retain this LICENSE file, containing this unmodified Grant. The Grant shall therefore also apply to users of GitHub and other people who view Your fork of this repository, and grant each of them the same rights.
+  a. You MUST retain this LICENSE file, containing this unmodified Grant. The Grant shall therefore also apply to users of GitHub and other people who view Your fork of this repository, and grant each of them the same rights.
 
-1b. You MUST additionally retain any notices of copyright ("Copyright Notices") that exist in any files contained in this repository.
+  b. You MUST additionally retain any notices of copyright ("Copyright Notices") that exist in any files contained in this repository.
 
-1c. You MUST NOT modify, alter or otherwise change the material from this repository. A modification shall be defined as any action which causes the computed SHA-256 hash of the entire repository to change.
+  c. You MUST NOT modify, alter or otherwise change the material from this repository. A modification shall be defined as any action which causes the computed SHA-256 hash of the entire repository to change.
 
 2. You MAY download, build, and run the Software on any computer that is not the property of a company or business, and that is not on premises owned by any company or business. The Software shall be used solely for personal use, and not for any financial gain or monetary compensation.
 
