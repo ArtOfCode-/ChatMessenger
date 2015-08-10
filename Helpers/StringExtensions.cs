@@ -20,6 +20,10 @@ namespace EPQMessenger.Helpers
         /// <returns>The text constrained between the separators, or null if none was found.</returns>
         public static string FindContainedText(this string haystack, string openingSeparator, string closingSeparator)
         {
+            if (!haystack.Contains(openingSeparator) || !haystack.Contains(closingSeparator))
+            {
+                return null;
+            }
             int startIndex = haystack.IndexOf(openingSeparator) + 1;
             if (startIndex == -1)
             {

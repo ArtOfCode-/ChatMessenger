@@ -122,8 +122,12 @@ namespace EPQMessenger.Workers
                     break;
                 case 302:
                     Server.SendMessage(string.Join("\n", response), _username);
-                    client.Send(Protocol.GetResponseFromCode(201));
-                    console.Log("201 Received sent.");
+                    new Thread(new ParameterizedThreadStart((tcpClient) =>
+                    {
+                        Thread.Sleep(51);
+                        TcpClient castedClient = (TcpClient)tcpClient;
+                        castedClient.Send(Protocol.GetResponseFromCode(201));
+                    })).Start(client);
                     break;
             }
         }

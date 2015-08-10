@@ -41,24 +41,32 @@ namespace EPQMessenger.Windows
         /// <param name="nameColor">The color in which to display the username.</param>
         public void AddMessage(string message, string name, Color nameColor)
         {
+            Console.WriteLine("[ClientWindow.AddMessage] Call note");
             this.ChangeStatus("Receiving", Color.FromRgb(204, 81, 0));
             Grid fullMessage = new Grid();
             fullMessage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70.00) });
             fullMessage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(600.00) });
 
-            Label nameLabel = new Label
+            Label nameLabel = new Label();
+            nameLabel.Content = string.Format("[{0}]", name);
+            nameLabel.Foreground = new SolidColorBrush(nameColor);
+            nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            if (name == "Server")
             {
-                Content = string.Format("[{0}]", name),
-                Foreground = new SolidColorBrush(nameColor)
-            };
+                nameLabel.FontStyle = FontStyles.Italic;
+            }
+
             Grid.SetColumn(nameLabel, 0);
 
-            TextBlock textLabel = new TextBlock
+            TextBlock textLabel = new TextBlock();
+            textLabel.Text = message;
+            textLabel.TextWrapping = TextWrapping.Wrap;
+            textLabel.Margin = new Thickness(0, 5, 0, 5);
+            if (name == "Server")
             {
-                Text = message,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 5, 0, 5)
-            };
+                textLabel.FontStyle = FontStyles.Italic;
+            }
+
             Grid.SetColumn(textLabel, 1);
 
             fullMessage.Children.Add(nameLabel);
@@ -67,6 +75,8 @@ namespace EPQMessenger.Windows
             Messages.Children.Add(fullMessage);
 
             this.ResetStatus();
+
+            Console.WriteLine("[ClientWindow.AddMessage] Method end");
         }
 
         private void Connect(bool failed)
@@ -107,17 +117,17 @@ namespace EPQMessenger.Windows
             }));
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _client.Close();
-            e.Cancel = false;
-        }
-
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             string message = Protocol.GetResponseFromCode(302) + "\n" + MessageInput.Text;
             _client.Send(message);
             MessageInput.Text = "";
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            _client.Close();
+            App.StopAllThreads = true;
         }
     }
 }

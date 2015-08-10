@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows.Media;
+using System.IO;
 using EPQMessenger.Windows;
 using EPQMessenger.States;
 using EPQMessenger.Helpers;
@@ -72,15 +73,21 @@ namespace EPQMessenger.Workers
         /// <param name="message">The message to send.</param>
         public void Send(string message)
         {
-            Console.WriteLine("m: c/s");
-            Console.WriteLine("d: {0}", message);
+            Console.WriteLine("[Client.Send] Sending: {0}", message);
             if (_client.Connected)
             {
                 _window.ChangeStatus("Sending", Color.FromRgb(204, 81, 0));
                 NetworkStream stream = _client.GetStream();
                 byte[] bytes = Encoding.ASCII.GetBytes(message);
-                stream.Write(bytes, 0, bytes.Length);
-                stream.Flush();
+                try
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush();
+                }
+                catch (IOException)
+                {
+                    _window.AddMessage("could not send - try again", "Server", Colors.Crimson);
+                }
                 this.Receive(ReceivedCallback);
             }
         }
@@ -91,7 +98,21 @@ namespace EPQMessenger.Workers
         /// <param name="callback">The ReadCallback to pass data to when the operation completes.</param>
         public void Receive(ReadCallback callback)
         {
-            NetworkStream stream = _client.GetStream();
+            NetworkStream stream;
+            try
+            {
+                stream = _client.GetStream();
+            }
+            catch (InvalidOperationException)
+            {
+                _window.AddMessage("fatal: failed to receive new messages", "Server", Colors.Crimson);
+                _window.Dispatcher.BeginInvoke(new Action(delegate()
+                {
+                    _window.SendButton.IsEnabled = false;
+                    _window.MessageInput.IsEnabled = false;
+                }));
+                return;
+            }
             while (!stream.DataAvailable)
             {
                 Thread.Sleep(50);
@@ -107,8 +128,6 @@ namespace EPQMessenger.Workers
         /// <param name="result">The IAsyncResult of the read operation.</param>
         private void ReceiveCallbackInternal(IAsyncResult result)
         {
-            Console.WriteLine("m: c/rci");
-
             ExtendedReadState state = (ExtendedReadState)result.AsyncState;
             NetworkStream stream = state.Stream;
             byte[] buffer = state.Buffer;
@@ -116,7 +135,7 @@ namespace EPQMessenger.Workers
 
             stream.EndRead(result);
 
-            Console.WriteLine("r: {0}", Encoding.ASCII.GetString(buffer));
+            Console.WriteLine("[Client.ReceiveCallbackInternal] Received: {0}", Encoding.ASCII.GetString(buffer));
 
             callback.Invoke(Encoding.ASCII.GetString(buffer));
         }
@@ -128,7 +147,6 @@ namespace EPQMessenger.Workers
         /// <param name="received">The string response received from the server.</param>
         private void ConnectedCallback(string received)
         {
-            Console.WriteLine("m: c/cc");
             int code = 0;
             try
             {
@@ -142,7 +160,9 @@ namespace EPQMessenger.Workers
             {
                 string message = Protocol.GetResponseFromCode(300) + "\n" + Environment.UserName;
                 this.Send(message);
-                new Thread(new ThreadStart(ListenForMessages)).Start();
+                Thread listenThread = new Thread(new ThreadStart(ListenForMessages));
+                listenThread.SetApartmentState(ApartmentState.STA);
+                listenThread.Start();
             }
             else
             {
@@ -157,7 +177,6 @@ namespace EPQMessenger.Workers
         /// <param name="received"></param>
         private void ReceivedCallback(string received)
         {
-            Console.WriteLine("m: c/rc");
             int code = Protocol.GetCodeFromResponse(received);
             if (code == 201 || code == 101)
             {
@@ -191,6 +210,7 @@ namespace EPQMessenger.Workers
         /// Adds the received message to the ClientWindow.
         /// </summary>
         /// <param name="result"></param>
+        [STAThread]
         private void MessageReceivedCallback(IAsyncResult result)
         {
             ReadState state = (ReadState)result.AsyncState;
@@ -200,11 +220,54 @@ namespace EPQMessenger.Workers
             stream.EndRead(result);
 
             string message = Encoding.ASCII.GetString(buffer);
-            string username = message.FindContainedText("<", ">");
-            int closeIndex = message.IndexOf(">");
-            string messageText = message.Substring(closeIndex + 1);
 
-            _window.AddMessage(messageText, username, Colors.DarkBlue);
+            Console.WriteLine("Message received: {0}", message);
+
+            this.HandleMessage(message);
+        }
+
+        private void HandleMessage(string message)
+        {
+            int code = 0;
+            try
+            {
+                code = Protocol.GetCodeFromResponse(message);
+            }
+            catch (FormatException) { return; }
+
+            switch (code)
+            {
+                case 302:
+                    string name = message.FindContainedText("<", ">");
+                    string text = message.Substring(message.IndexOf(">") + 1);
+                    if (name == Environment.UserName)
+                    {
+                        Thread addThread = new Thread(new ParameterizedThreadStart((window) =>
+                        {
+                            ((ClientWindow)window).AddMessage(text, name, Colors.DarkBlue);
+                        }));
+                        addThread.SetApartmentState(ApartmentState.STA);
+                        addThread.Start(_window);
+                    }
+                    else
+                    {
+                        Thread addThread = new Thread(new ParameterizedThreadStart((window) => 
+                        {
+                            Console.WriteLine("[Client.HandleMessage:Thread] Thread started.");
+                            ((ClientWindow)window).AddMessage(text, name, Colors.DarkGreen);
+                        }));
+                        addThread.SetApartmentState(ApartmentState.STA);
+                        addThread.Start(_window);
+                    }
+                    break;
+                case 201:
+                    _window.ResetStatus();
+                    break;
+                default:
+                    string errorText = string.Format("encountered {0} {1} error - try again", code, Protocol.StatusCodes[code]);
+                    _window.AddMessage(errorText, "Server", Colors.Crimson);
+                    break;
+            }
         }
 
         /// <summary>
