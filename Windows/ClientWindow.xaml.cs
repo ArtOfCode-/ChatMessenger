@@ -41,7 +41,6 @@ namespace EPQMessenger.Windows
         /// <param name="nameColor">The color in which to display the username.</param>
         public void AddMessage(string message, string name, Color nameColor)
         {
-            Console.WriteLine("[ClientWindow.AddMessage] Call note");
             this.ChangeStatus("Receiving", Color.FromRgb(204, 81, 0));
             Grid fullMessage = new Grid();
             fullMessage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70.00) });
@@ -72,11 +71,12 @@ namespace EPQMessenger.Windows
             fullMessage.Children.Add(nameLabel);
             fullMessage.Children.Add(textLabel);
 
-            Messages.Children.Add(fullMessage);
+            this.Dispatcher.BeginInvoke(new Action(delegate()
+            {
+                Messages.Children.Add(fullMessage);
+            }));
 
             this.ResetStatus();
-
-            Console.WriteLine("[ClientWindow.AddMessage] Method end");
         }
 
         private void Connect(bool failed)
@@ -119,7 +119,7 @@ namespace EPQMessenger.Windows
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            string message = Protocol.GetResponseFromCode(302) + "\n" + MessageInput.Text;
+            string message = string.Format("{0}\n<{1}>{2}", Protocol.GetResponseFromCode(302), Environment.UserName, MessageInput.Text);
             _client.Send(message);
             MessageInput.Text = "";
         }

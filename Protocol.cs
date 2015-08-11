@@ -94,7 +94,7 @@ namespace EPQMessenger
         /// </summary>
         /// <param name="response">The full client response.</param>
         /// <returns>The simple response text, stripped of status headers.</returns>
-        public static string[] GetClientResponse(string response)
+        public static string GetClientResponse(string response)
         {
             int code = GetCodeFromResponse(response);
             if (code != 300 && code != 302)
@@ -108,7 +108,7 @@ namespace EPQMessenger
             }
             List<string> lineList = lines.ToList();
             lineList.RemoveAt(0);
-            return lineList.ToArray();
+            return string.Join(string.Empty, lineList.ToArray());
         }
     }
 }

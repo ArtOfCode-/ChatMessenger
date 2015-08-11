@@ -102,7 +102,7 @@ namespace EPQMessenger.Workers
 
         private void HandleMessage(string fullMessage, int code, TcpClient client, ServerWindow console)
         {
-            string[] response = null;
+            string response = null;
             if (code == 302)
             {
                 response = Protocol.GetClientResponse(fullMessage);
@@ -124,7 +124,8 @@ namespace EPQMessenger.Workers
                     Server.SendMessage(string.Join("\n", response), _username);
                     new Thread(new ParameterizedThreadStart((tcpClient) =>
                     {
-                        Thread.Sleep(51);
+                        // Delay stops two messages being received at the same time and running together
+                        Thread.Sleep(60);
                         TcpClient castedClient = (TcpClient)tcpClient;
                         castedClient.Send(Protocol.GetResponseFromCode(201));
                     })).Start(client);

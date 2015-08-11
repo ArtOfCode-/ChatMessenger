@@ -42,6 +42,7 @@ namespace EPQMessenger.Workers
             _console = console;
             Port = port;
             _clients = new Dictionary<string, TcpClient>();
+            _logger.IsEnabled = true;
         }
 
         /// <summary>
@@ -95,17 +96,13 @@ namespace EPQMessenger.Workers
 
             string received = Encoding.ASCII.GetString(buffer);
 
-            string[] response;
+            string response;
             try
             {
                 response = Protocol.GetClientResponse(received);
-                if (response.Length > 1)
-                {
-                    client.Send(Protocol.GetResponseFromCode(403));
-                }
-                _clients.Add(response[0], client);      // response[0] is the username
-                new ServerCommunicationThread(client, response[0], _console);
-                _console.Log("Client '{0}' finished connecting, communication thread spawned.", response[0]);
+                _clients.Add(response, client);      // response[0] is the username
+                new ServerCommunicationThread(client, response, _console);
+                _console.Log("Client '{0}' finished connecting, communication thread spawned.", response);
             }
             catch (Exception e)
             {
@@ -133,10 +130,17 @@ namespace EPQMessenger.Workers
         /// <param name="username">The user to attribute the message to.</param>
         public static void SendMessage(string message, string username)
         {
-            _logger.LogWithoutCallerInfo("<{0}>{1}", username, message);
+            _logger.LogWithoutCallerInfo(message);
             foreach (KeyValuePair<string, TcpClient> pair in _clients)
             {
-                pair.Value.Send(Protocol.GetResponseFromCode(302) + "\n" + message);
+                try
+                {
+                    pair.Value.Send(Protocol.GetResponseFromCode(302) + "\n" + message);
+                }
+                catch (IOException e)
+                {
+                    _console.Log("Failed to send to {0}: {1}", pair.Key, e.Message);
+                }
             }
             _console.Log("Sent message from {0} to all clients.", username);
         }
@@ -153,6 +157,10 @@ namespace EPQMessenger.Workers
                     pair.Value.Send(Protocol.GetResponseFromCode(104));
                 }
                 catch (IOException e)
+                {
+                    _console.Log("Failed to send shutdown to '{0}': {1}", pair.Key, e.Message);
+                }
+                catch (InvalidOperationException e)
                 {
                     _console.Log("Failed to send shutdown to '{0}': {1}", pair.Key, e.Message);
                 }

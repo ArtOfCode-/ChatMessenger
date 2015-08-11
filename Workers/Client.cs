@@ -88,7 +88,6 @@ namespace EPQMessenger.Workers
                 {
                     _window.AddMessage("could not send - try again", "Server", Colors.Crimson);
                 }
-                this.Receive(ReceivedCallback);
             }
         }
 
@@ -184,7 +183,7 @@ namespace EPQMessenger.Workers
             }
             else
             {
-                this.Receive(ReceivedCallback);
+                this.HandleMessage(received);
             }
         }
 
@@ -221,7 +220,7 @@ namespace EPQMessenger.Workers
 
             string message = Encoding.ASCII.GetString(buffer);
 
-            Console.WriteLine("Message received: {0}", message);
+            Console.WriteLine("[Client.MessageReceivedCallback] Message received: {0}", message);
 
             this.HandleMessage(message);
         }
@@ -229,43 +228,61 @@ namespace EPQMessenger.Workers
         private void HandleMessage(string message)
         {
             int code = 0;
+            string messageText = "";
             try
             {
                 code = Protocol.GetCodeFromResponse(message);
+                if (code == 302)
+                {
+                    messageText = Protocol.GetClientResponse(message);
+                }
             }
             catch (FormatException) { return; }
 
             switch (code)
             {
                 case 302:
-                    string name = message.FindContainedText("<", ">");
-                    string text = message.Substring(message.IndexOf(">") + 1);
+                    string name = messageText.FindContainedText("<", ">");
+                    string text = messageText.Substring(messageText.IndexOf(">") + 1);
+                    Color nameColor;
                     if (name == Environment.UserName)
                     {
-                        Thread addThread = new Thread(new ParameterizedThreadStart((window) =>
-                        {
-                            ((ClientWindow)window).AddMessage(text, name, Colors.DarkBlue);
-                        }));
-                        addThread.SetApartmentState(ApartmentState.STA);
-                        addThread.Start(_window);
+                        nameColor = Colors.DarkBlue;
                     }
                     else
                     {
-                        Thread addThread = new Thread(new ParameterizedThreadStart((window) => 
-                        {
-                            Console.WriteLine("[Client.HandleMessage:Thread] Thread started.");
-                            ((ClientWindow)window).AddMessage(text, name, Colors.DarkGreen);
-                        }));
-                        addThread.SetApartmentState(ApartmentState.STA);
-                        addThread.Start(_window);
+                        nameColor = Colors.DarkGreen;
                     }
+                    NewMessageState state = new NewMessageState(text, name, nameColor, _window);
+                    Thread addThread = new Thread(new ParameterizedThreadStart((messageState) =>
+                    {
+                        NewMessageState details = (NewMessageState)state;
+                        details.Window.Dispatcher.BeginInvoke(new Action(delegate()
+                        {
+                            details.Window.AddMessage(details.Message, details.Name, details.NameColor);
+                        }));
+                    }));
+                    addThread.SetApartmentState(ApartmentState.STA);
+                    addThread.Start(state);
                     break;
                 case 201:
                     _window.ResetStatus();
                     break;
+                case 101:
+                    _window.ResetStatus();
+                    break;
                 default:
-                    string errorText = string.Format("encountered {0} {1} error - try again", code, Protocol.StatusCodes[code]);
-                    _window.AddMessage(errorText, "Server", Colors.Crimson);
+                    Thread addServerMessage = new Thread(new ParameterizedThreadStart((window) => 
+                    {
+                        string errorText = string.Format("encountered {0} {1} error - try again", code, Protocol.StatusCodes[code]);
+                        ClientWindow clientWindow = (ClientWindow)window;
+                        clientWindow.Dispatcher.BeginInvoke(new Action(delegate()
+                        {
+                            clientWindow.AddMessage(errorText, "Server", Colors.Crimson);
+                        }));
+                    }));
+                    addServerMessage.SetApartmentState(ApartmentState.STA);
+                    addServerMessage.Start(_window);
                     break;
             }
         }

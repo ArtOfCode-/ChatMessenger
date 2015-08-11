@@ -67,6 +67,7 @@
     <Compile Include="Helpers\TypeExtensions.cs" />
     <Compile Include="Protocol.cs" />
     <Compile Include="States\ExtendedReadState.cs" />
+    <Compile Include="States\NewMessageState.cs" />
     <Compile Include="States\ReadState.cs" />
     <Compile Include="States\ServerCommunicationState.cs" />
     <Compile Include="States\ServerReadState.cs" />

@@ -38,6 +38,7 @@ namespace EPQMessenger.Windows
         {
             InitializeComponent();
             _logger = new Logger();
+            _logger.IsEnabled = true;
             Overlay.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#44FFFFFF"));
             this.Log("Loading Messenger::Server modules");
             this.Log("Creating Server instance...");

@@ -67,7 +67,7 @@ namespace EPQMessenger.Workers
                 string callerName = simpleTypeName + "." + callerMethod.Name;
                 string messageText = string.Format("[{0}] [{1}] {2}", DateTime.Now.ToLongTimeString(),
                     callerName, string.Format(message, args));
-                File.WriteAllLines(LogDirectory + "\\" + LogFile, new string[] { messageText });
+                File.AppendAllLines(LogDirectory + "\\" + LogFile, new string[] { messageText });
             }
         }
 
@@ -82,7 +82,7 @@ namespace EPQMessenger.Workers
             {
                 string messageText = string.Format("[{0}] {1}", DateTime.Now.ToLongTimeString(),
                    string.Format(message, args));
-                File.WriteAllLines(LogDirectory + "\\" + LogFile, new string[] { messageText });
+                File.AppendAllLines(LogDirectory + "\\" + LogFile, new string[] { messageText });
             }
         }
     }
