@@ -112,7 +112,11 @@ namespace EPQMessenger.Windows
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            e.Cancel = true;
+            this.Log("Closing event canceled. Start sending shutdown signals...");
             _server.SendShutdown();
+            this.Log("Shutdown signal sending complete. Shutting down.");
+            Environment.Exit(0);
         }
     }
 }

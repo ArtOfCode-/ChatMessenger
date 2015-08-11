@@ -41,6 +41,18 @@ namespace EPQMessenger.Helpers
             stream.BeginWrite(messageBuffer, 0, messageBuffer.Length, BeginWriteCallback, (object)new WriteState(stream, null));
         }
 
+        /// <summary>
+        /// Sends a message synchronously to the specified TcpClient.
+        /// </summary>
+        /// <param name="client">The TcpClient to send the message to.</param>
+        /// <param name="message">The message to send.</param>
+        public static void SendSync(this TcpClient client, string message)
+        {
+            NetworkStream stream = client.GetStream();
+            byte[] messageBuffer = Encoding.ASCII.GetBytes(message);
+            stream.Write(messageBuffer, 0, messageBuffer.Length);
+        }
+
         private static void BeginWriteCallback(IAsyncResult result)
         {
             WriteState state = (WriteState)result.AsyncState;
