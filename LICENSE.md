@@ -19,7 +19,7 @@ This document (the "Grant") is a record that I, the Author, grant You some right
 
   c. You MUST NOT modify, alter or otherwise change the material from this repository. A modification shall be defined as any action which causes the computed SHA-256 hash of the entire repository to change.
 
-2. You MAY download, build, and run the Software on any computer that is not the property of a company or business, and that is not on premises owned by any company or business. The Software shall be used solely for personal use, and not for any financial gain or monetary compensation.
+2. You MAY download, build, and run the Software on any computer that is not the property of a company, business or institution, and that is not on premises owned by any company, business or institution. The Software shall be used solely for personal use, and not for any financial gain or monetary compensation.
 
 3. You MUST NOT distribute, send, pass on or otherwise transmit the Software to any other person or entity.
 
