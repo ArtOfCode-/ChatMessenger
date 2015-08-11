@@ -155,6 +155,7 @@ namespace EPQMessenger.Workers
                 try
                 {
                     pair.Value.Send(Protocol.GetResponseFromCode(104));
+                    _console.Log("Sent shutdown signal to {0}", pair.Key);
                 }
                 catch (IOException e)
                 {

@@ -30,7 +30,7 @@ namespace EPQMessenger.Workers
             Console.WriteLine("Conversation log: {0}", LogDirectory + "\\" + LogFile);
         }
 
-        public void LogWithoutCallerInfo(string message, params object[] args)
+        public new void LogWithoutCallerInfo(string message, params object[] args)
         {
             if (IsEnabled)
             {

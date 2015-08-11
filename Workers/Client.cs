@@ -271,6 +271,19 @@ namespace EPQMessenger.Workers
                 case 101:
                     _window.ResetStatus();
                     break;
+                case 104:
+                    Thread addShutdownMessage = new Thread(new ParameterizedThreadStart((window) => 
+                    {
+                        string errorText = string.Format("server has shut down");
+                        ClientWindow clientWindow = (ClientWindow)window;
+                        clientWindow.Dispatcher.BeginInvoke(new Action(delegate()
+                        {
+                            clientWindow.AddMessage(errorText, "Server", Colors.Crimson);
+                        }));
+                    }));
+                    addShutdownMessage.SetApartmentState(ApartmentState.STA);
+                    addShutdownMessage.Start(_window);
+                    break;
                 default:
                     Thread addServerMessage = new Thread(new ParameterizedThreadStart((window) => 
                     {

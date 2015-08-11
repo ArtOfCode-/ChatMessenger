@@ -33,8 +33,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="100" />
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Name="MessageInput" Margin="2" Padding="3" />
-            <Button Grid.Column="1" Name="SendButton" Margin="2" Padding="3" Click="SendButton_Click">Send</Button>
+            <TextBox Grid.Column="0" Name="MessageInput" Margin="5 0 5 1" Padding="3" />
+            <Button Grid.Column="1" Name="SendButton" Padding="3" Click="SendButton_Click">Send</Button>
         </Grid>
         
         <StatusBar Grid.Row="2" Name="Status" Background="DodgerBlue">

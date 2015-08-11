@@ -23,6 +23,8 @@ namespace EPQMessenger.Windows
 
         public int Port;
 
+        private bool _systemClosed = false;
+
         public IPPromptWindow(bool failed)
         {
             InitializeComponent();
@@ -36,7 +38,16 @@ namespace EPQMessenger.Windows
         {
             IPAddress = IPInput.Text;
             int.TryParse(PortInput.Text, out Port);
+            _systemClosed = true;
             this.Close();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            if (!_systemClosed)
+            {
+                Environment.Exit(0);
+            }
         }
     }
 }
