@@ -283,6 +283,8 @@ namespace EPQMessenger.Workers
                     }));
                     addShutdownMessage.SetApartmentState(ApartmentState.STA);
                     addShutdownMessage.Start(_window);
+                    _window.SendButton.IsEnabled = false;
+                    _window.MessageInput.IsEnabled = false;
                     break;
                 default:
                     Thread addServerMessage = new Thread(new ParameterizedThreadStart((window) => 
