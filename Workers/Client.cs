@@ -279,12 +279,12 @@ namespace EPQMessenger.Workers
                         clientWindow.Dispatcher.BeginInvoke(new Action(delegate()
                         {
                             clientWindow.AddMessage(errorText, "Server", Colors.Crimson);
+                            clientWindow.SendButton.IsEnabled = false;
+                            clientWindow.MessageInput.IsEnabled = false;
                         }));
                     }));
                     addShutdownMessage.SetApartmentState(ApartmentState.STA);
                     addShutdownMessage.Start(_window);
-                    _window.SendButton.IsEnabled = false;
-                    _window.MessageInput.IsEnabled = false;
                     break;
                 default:
                     Thread addServerMessage = new Thread(new ParameterizedThreadStart((window) => 
@@ -310,6 +310,7 @@ namespace EPQMessenger.Workers
             if (_client.Connected)
             {
                 this.Send(Protocol.GetResponseFromCode(301));
+                Thread.Sleep(100);
             }
         }
     }

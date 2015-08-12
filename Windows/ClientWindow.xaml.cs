@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.ComponentModel;
 using EPQMessenger.Workers;
 
 namespace EPQMessenger.Windows
@@ -124,7 +125,7 @@ namespace EPQMessenger.Windows
             MessageInput.Text = "";
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        private void Window_Closing(object sender, CancelEventArgs e)
         {
             _client.Close();
             App.StopAllThreads = true;
