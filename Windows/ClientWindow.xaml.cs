@@ -129,7 +129,7 @@ namespace EPQMessenger.Windows
             {
                 return;
             }
-            string message = string.Format("{0}\n<{1}>{2}", Protocol.GetResponseFromCode(302), Environment.UserName, MessageInput.Text);
+            string message = string.Format("{0}\n{1}", Protocol.GetResponseFromCode(302), MessageInput.Text);
             _client.Send(message);
             MessageInput.Text = "";
         }
@@ -138,6 +138,14 @@ namespace EPQMessenger.Windows
         {
             _client.Close();
             App.StopAllThreads = true;
+        }
+
+        private void MessageInput_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                this.SendButton_Click(this, new RoutedEventArgs());
+            }
         }
     }
 }

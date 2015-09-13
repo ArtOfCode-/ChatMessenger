@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EPQMessenger.Helpers
 {
-    interface ICommand
+    public interface ICommand
     {
         bool IsPrivileged { get; set; }
 

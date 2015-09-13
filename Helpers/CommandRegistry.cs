@@ -10,7 +10,7 @@ namespace EPQMessenger.Helpers
     /// Serves as a centralized place for registering and executing commands, such as server commands.
     /// </summary>
     /// <typeparam name="T">An ICommand-derived type representing the type of command this instance will take.</typeparam>
-    class CommandRegistry<T>
+    public class CommandRegistry<T>
         where T : ICommand
     {
         private Dictionary<string, T> _commands;

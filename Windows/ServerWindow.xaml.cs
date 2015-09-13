@@ -34,7 +34,10 @@ namespace EPQMessenger.Windows
 
         private Logger _logger;
 
-        private CommandRegistry<ServerCommand> _commands;
+        /// <summary>
+        /// The command registry for this instance of the server.
+        /// </summary>
+        private static CommandRegistry<ServerCommand> _commands;
 
         /// <summary>
         /// Initialises a new instance of the ServerWindow class and sets up the required values and
@@ -55,6 +58,16 @@ namespace EPQMessenger.Windows
             RunningServer.Start();
             _commands = new CommandRegistry<ServerCommand>();
             new ServerCommands(RunningServer, _commands);
+        }
+
+        // Implemented because simply making _commands public gives accessibility issues.
+        /// <summary>
+        /// Gets the CommandRegistry that this instance is using to manage commands.
+        /// </summary>
+        /// <returns>A CommandRegistry&lt;ServerCommand&gt; representing the registry instance.</returns>
+        internal static CommandRegistry<ServerCommand> GetCommandRegistry()
+        {
+            return _commands;
         }
 
         /// <summary>

@@ -136,15 +136,40 @@ namespace EPQMessenger.Workers
                     Thread.CurrentThread.Abort();
                     break;
                 case 302:
-                    Server.SendMessage(string.Join("\n", response), _username);
                     new Thread(new ParameterizedThreadStart((tcpClient) =>
                     {
-                        // Delay stops two messages being received at the same time and running together
-                        Thread.Sleep(60);
+                        string respondToClient = this.Parse302Message(response);
                         TcpClient castedClient = (TcpClient)tcpClient;
-                        castedClient.Send(Protocol.GetResponseFromCode(201));
+                        Thread.Sleep(60);
+                        castedClient.Send(respondToClient);
                     })).Start(client);
                     break;
+            }
+        }
+
+        private string Parse302Message(string message)
+        {
+            if (message.StartsWith("//"))
+            {
+                string[] command = message.Substring(2).Split(' ');
+                string commandName = command[0];
+                List<string> argsList = command.ToList<string>();
+                argsList.RemoveAt(0);
+                string[] args = argsList.ToArray<string>();
+                if (ServerWindow.GetCommandRegistry().ListCommandNames().Contains(commandName))
+                {
+                    return string.Format("{0}\n<Server>[{1}] {2}", Protocol.GetResponseFromCode(302), commandName, 
+                        ServerWindow.GetCommandRegistry().Execute(commandName, args));
+                }
+                else
+                {
+                    return string.Format("{0}\n<Server>No such command.", Protocol.GetResponseFromCode(302));
+                }
+            }
+            else
+            {
+                Server.SendMessage(message, _username);
+                return Protocol.GetResponseFromCode(201);
             }
         }
     }
