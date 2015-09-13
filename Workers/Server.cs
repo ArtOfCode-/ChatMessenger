@@ -186,7 +186,7 @@ namespace EPQMessenger.Workers
             {
                 try
                 {
-                    pair.Value.Send(Protocol.GetResponseFromCode(302) + "\n" + message);
+                    pair.Value.Send(string.Format("{0}\n<{1}>{2}", Protocol.GetResponseFromCode(302), username, message));
                 }
                 catch (IOException e)
                 {

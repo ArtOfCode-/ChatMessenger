@@ -286,6 +286,36 @@ namespace EPQMessenger.Workers
                     addShutdownMessage.SetApartmentState(ApartmentState.STA);
                     addShutdownMessage.Start(_window);
                     break;
+                case 105:
+                    Thread addKickMessage = new Thread(new ParameterizedThreadStart((window) =>
+                    {
+                        string errorText = string.Format("An administrator has temporarily removed you from the server.");
+                        ClientWindow clientWindow = (ClientWindow)window;
+                        clientWindow.Dispatcher.BeginInvoke(new Action(delegate()
+                        {
+                            clientWindow.AddMessage(errorText, "Server", Colors.Crimson);
+                            clientWindow.SendButton.IsEnabled = false;
+                            clientWindow.MessageInput.IsEnabled = false;
+                        }));
+                    }));
+                    addKickMessage.SetApartmentState(ApartmentState.STA);
+                    addKickMessage.Start(_window);
+                    break;
+                case 106:
+                    Thread addBanMessage = new Thread(new ParameterizedThreadStart((window) =>
+                    {
+                        string errorText = string.Format("An administrator has banned you from the server.");
+                        ClientWindow clientWindow = (ClientWindow)window;
+                        clientWindow.Dispatcher.BeginInvoke(new Action(delegate()
+                        {
+                            clientWindow.AddMessage(errorText, "Server", Colors.Crimson);
+                            clientWindow.SendButton.IsEnabled = false;
+                            clientWindow.MessageInput.IsEnabled = false;
+                        }));
+                    }));
+                    addBanMessage.SetApartmentState(ApartmentState.STA);
+                    addBanMessage.Start(_window);
+                    break;
                 default:
                     Thread addServerMessage = new Thread(new ParameterizedThreadStart((window) => 
                     {
