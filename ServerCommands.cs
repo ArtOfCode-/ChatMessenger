@@ -32,6 +32,8 @@ namespace EPQMessenger
             _registry.Register(new ServerCommand("ban", true, BanUser, "Bans a user from the server, never to return!"));
             _registry.Register(new ServerCommand("kick", true, KickUser, "Kicks a user from their session. They may reconnect, but their sessions will be read-only until the server is restarted."));
             _registry.Register(new ServerCommand("restart", true, Restart, "Restarts the server, notifying clients that it's happening."));
+            _registry.Register(new ServerCommand("privileged", false, ListPrivileged, "Gives a list of all the privileged users."));
+            _registry.Register(new ServerCommand("banned", false, ListBanned, "Gives a list of all the banned users."));
         }
 
         public string Broadcast(string[] args)
@@ -84,7 +86,7 @@ namespace EPQMessenger
             {
                 bool result = Server.DisconnectClient(args[0], 106);
                 App.BannedUsers.Add(args[0]);
-                App.SaveBannedUsers();
+                App.SaveData(App.BannedUsers, "banned_users.dta");
                 return "User banned" + (result ? " and disconnected." : ", but could not be disconnected.");
             }
         }
@@ -109,6 +111,18 @@ namespace EPQMessenger
             Thread.Sleep(50);
             Environment.Exit(0);
             return "Restarting server.";
+        }
+
+        public string ListPrivileged(string[] args)
+        {
+            string list = string.Join(", ", App.PrivilegedUsers);
+            return list == "" ? "No privileged users." : list;
+        }
+
+        public string ListBanned(string[] args)
+        {
+            string list = string.Join(", ", App.BannedUsers);
+            return list == "" ? "No banned users." : list;
         }
     }
 }

@@ -37,6 +37,7 @@ namespace EPQMessenger.Helpers
         {
             Name = name;
             _commandMethod = action;
+            IsPrivileged = isPrivileged;
             HelpText = help;
         }
 

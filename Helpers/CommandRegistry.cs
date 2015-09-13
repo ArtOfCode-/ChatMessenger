@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EPQMessenger.Helpers;
 
 namespace EPQMessenger.Helpers
 {
@@ -71,6 +72,23 @@ namespace EPQMessenger.Helpers
         public List<string> ListCommandNames()
         {
             return _commands.Keys.ToList<string>();
+        }
+
+        /// <summary>
+        /// Gets a registered command based on its name.
+        /// </summary>
+        /// <param name="commandName">The name of the command to find.</param>
+        /// <returns>The T command represented by the given name, or null if it could not be found.</returns>
+        public T GetCommand(string commandName)
+        {
+            if (this.ListCommandNames().Contains(commandName))
+            {
+                return _commands[commandName];
+            }
+            else
+            {
+                throw new CommandNotFoundException("The command'{0}' does not exist.", commandName);
+            }
         }
     }
 }

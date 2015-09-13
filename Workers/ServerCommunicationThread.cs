@@ -19,6 +19,8 @@ namespace EPQMessenger.Workers
     {
         private readonly string _username;
 
+        private ServerWindow _console;
+
         /// <summary>
         /// Initialises a new instance of the ServerCommunicationThread class.
         /// </summary>
@@ -28,6 +30,7 @@ namespace EPQMessenger.Workers
         public ServerCommunicationThread(TcpClient client, string username, ServerWindow console, Server server)
         {
             _username = username;
+            _console = console;
             new Thread(new ParameterizedThreadStart(ThreadMethod)).Start(new ServerCommunicationState(client, console, server));
         }
 
@@ -151,19 +154,40 @@ namespace EPQMessenger.Workers
         {
             if (message.StartsWith("//"))
             {
-                string[] command = message.Substring(2).Split(' ');
-                string commandName = command[0];
-                List<string> argsList = command.ToList<string>();
+                string[] commandParts = message.Substring(2).Split(' ');
+                string commandName = commandParts[0];
+                List<string> argsList = commandParts.ToList<string>();
                 argsList.RemoveAt(0);
                 string[] args = argsList.ToArray<string>();
-                if (ServerWindow.GetCommandRegistry().ListCommandNames().Contains(commandName))
+                CommandRegistry<ServerCommand> registry = ServerWindow.GetCommandRegistry();
+                ServerCommand command;
+                try
                 {
-                    return string.Format("{0}\n<Server>[{1}] {2}", Protocol.GetResponseFromCode(302), commandName, 
-                        ServerWindow.GetCommandRegistry().Execute(commandName, args));
+                    command = registry.GetCommand(commandName);
+                    _console.Log("Command '{0}' found.", commandName);
+                }
+                catch (CommandNotFoundException)
+                {
+                    _console.Log("Command '{0}' doesn't exist.", commandName);
+                    return Protocol.GetResponseFromCode(302) + "\n<Server>No such command.";
+                }
+                if (command.IsPrivileged)
+                {
+                    if (App.PrivilegedUsers.Contains(_username))
+                    {
+                        _console.Log("Command is privileged, and user has authority to run it.");
+                        return string.Format("{0}\n<Server>{1}", Protocol.GetResponseFromCode(302), command.Execute(args));
+                    }
+                    else
+                    {
+                        _console.Log("Command is privileged, but user has no authority to run it.");
+                        return string.Format("{0}\n<Server>{1}", Protocol.GetResponseFromCode(302), "You don't have the required permission to run this command.");
+                    }
                 }
                 else
                 {
-                    return string.Format("{0}\n<Server>No such command.", Protocol.GetResponseFromCode(302));
+                    _console.Log("Command is unprivileged, any user can run it.");
+                    return string.Format("{0}\n<Server>{1}", Protocol.GetResponseFromCode(302), command.Execute(args));
                 }
             }
             else

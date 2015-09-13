@@ -48,10 +48,24 @@ namespace EPQMessenger
             set
             {
                 _bannedUsersInternal = value;
-                SaveBannedUsers();
+                SaveData(_bannedUsersInternal, "banned_users.dta");
             }
         }
         private static List<string> _bannedUsersInternal = new List<string>();
+
+        public static List<string> PrivilegedUsers
+        {
+            get
+            {
+                return _privilegedUsersInternal;
+            }
+            set
+            {
+                _privilegedUsersInternal = value;
+                SaveData(_privilegedUsersInternal, "privileged_users.dta");
+            }
+        }
+        private static List<string> _privilegedUsersInternal = new List<string>();
 
         /// <summary>
         /// Represents the application's main window.
@@ -68,7 +82,8 @@ namespace EPQMessenger
             LogDevice = new Logger();
 
             this.ParseCommandLineArgs();
-            this.LoadBannedUsers();
+            BannedUsers = this.LoadData("banned_users.dta");
+            PrivilegedUsers = this.LoadData("privileged_users.dta");
 
             if (OperatingMode == OperationMode.Server)
             {
@@ -137,29 +152,25 @@ namespace EPQMessenger
             OperatingMode = mode;
         }
 
-        private void LoadBannedUsers()
+        private List<string> LoadData(string filename)
         {
-            if (Directory.Exists(Path.Combine(LogDevice.LogDirectory, "data")))
+            string dataDirectory = Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath),
+                "data");
+            if (!Directory.Exists(dataDirectory))
             {
-                if (File.Exists(Path.Combine(LogDevice.LogDirectory, "data", "banned_users.dta")))
-                {
-                    BannedUsers = File.ReadAllLines(Path.Combine(LogDevice.LogDirectory, "data", "banned_users.dta")).ToList<string>();
-                }
-                else
-                {
-                    File.Create(Path.Combine(LogDevice.LogDirectory, "data", "banned_users.dta"));
-                }
+                Directory.CreateDirectory(dataDirectory);
             }
-            else
+            if (!File.Exists(Path.Combine(dataDirectory, filename)))
             {
-                Directory.CreateDirectory(Path.Combine(LogDevice.LogDirectory, "data"));
-                File.Create(Path.Combine(LogDevice.LogDirectory, "data", "banned_users.dta"));
+                File.Create(Path.Combine(dataDirectory, filename));
             }
+            return File.ReadAllLines(Path.Combine(dataDirectory, filename)).ToList<string>();
         }
 
-        public static void SaveBannedUsers()
+        public static void SaveData(List<string> data, string filename)
         {
-            File.WriteAllLines(Path.Combine(LogDevice.LogDirectory, "data", "banned_users.dta"), BannedUsers);
+            File.WriteAllLines(Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath),
+                "data", filename), data.ToArray<string>());
         }
     }
 }

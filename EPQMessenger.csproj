@@ -95,6 +95,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers\CommandNotFoundException.cs" />
     <Compile Include="Helpers\CommandRegistry.cs" />
     <Compile Include="Helpers\ICommand.cs" />
     <Compile Include="Helpers\ReadCallback.cs" />

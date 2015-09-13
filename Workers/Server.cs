@@ -233,7 +233,7 @@ namespace EPQMessenger.Workers
         /// </summary>
         public void StopServer(string reason)
         {
-            SendMessage("<Server>The server is restarting because " + reason + ". Your connection will be dropped. The server will be available again shortly.", "Server");
+            SendMessage("The server is restarting because " + reason + ". Your connection will be dropped. The server will be available again shortly.", "Server");
             Thread.Sleep(50);
             this.SendShutdown();
             _listener.Stop();
