@@ -42,6 +42,11 @@ namespace EPQMessenger.Windows
         /// <param name="nameColor">The color in which to display the username.</param>
         public void AddMessage(string message, string name, Color nameColor)
         {
+            if (name == "Server")
+            {
+                nameColor = Colors.Crimson;
+            }
+
             this.ChangeStatus("Receiving", Color.FromRgb(204, 81, 0));
             Grid fullMessage = new Grid();
             fullMessage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70.00) });
@@ -120,6 +125,10 @@ namespace EPQMessenger.Windows
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
+            if (MessageInput.Text == "")
+            {
+                return;
+            }
             string message = string.Format("{0}\n<{1}>{2}", Protocol.GetResponseFromCode(302), Environment.UserName, MessageInput.Text);
             _client.Send(message);
             MessageInput.Text = "";

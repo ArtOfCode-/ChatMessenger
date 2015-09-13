@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Media;
 using System.IO;
 
 namespace EPQMessenger.Workers
@@ -19,7 +20,7 @@ namespace EPQMessenger.Workers
     /// <summary>
     /// The behind-the-scenes operation class that actually does all the server work.
     /// </summary>
-    class Server
+    public class Server
     {
         private static ServerWindow _console;
 
@@ -27,10 +28,17 @@ namespace EPQMessenger.Workers
 
         private static ConversationLogger _logger = new ConversationLogger();
 
+        private TcpListener _listener;
+
         /// <summary>
         /// Gets (or privately, sets) the port on which the server will operate.
         /// </summary>
         public int Port { get; private set; }
+
+        /// <summary>
+        /// A list of usernames whose threads require termination.
+        /// </summary>
+        public static List<string> StopThreads { get; set; }
 
         /// <summary>
         /// Initialises a new instance of Server, using the specified console window and port number.
@@ -43,6 +51,7 @@ namespace EPQMessenger.Workers
             Port = port;
             _clients = new Dictionary<string, TcpClient>();
             _logger.IsEnabled = true;
+            StopThreads = new List<string>();
         }
 
         /// <summary>
@@ -50,9 +59,9 @@ namespace EPQMessenger.Workers
         /// </summary>
         public void Start()
         {
-            TcpListener listener = new TcpListener(IPAddress.Any, Port);
-            listener.Start();
-            listener.BeginAcceptTcpClient(AcceptClientCallback, listener);
+            _listener = new TcpListener(IPAddress.Any, Port);
+            _listener.Start();
+            _listener.BeginAcceptTcpClient(AcceptClientCallback, _listener);
         }
 
         /// <summary>
@@ -62,7 +71,16 @@ namespace EPQMessenger.Workers
         private void AcceptClientCallback(IAsyncResult result)
         {
             TcpListener listener = (TcpListener)result.AsyncState;
-            TcpClient connectedClient = listener.EndAcceptTcpClient(result);
+            TcpClient connectedClient;
+            try
+            {
+                connectedClient = listener.EndAcceptTcpClient(result);
+            }
+            catch (ObjectDisposedException)
+            {
+                _console.Log("Could not end listen call on the listener - object has been disposed.");
+                return;
+            }
 
             _console.Log("Client connected from {0}: send 202 Continue and await identification.", 
                 connectedClient.Client.RemoteEndPoint.ToString());
@@ -76,7 +94,14 @@ namespace EPQMessenger.Workers
             byte[] readBuffer = new byte[connectedClient.Available];
             clientStream.BeginRead(readBuffer, 0, readBuffer.Length, ReadCallback, new ReadState(connectedClient, readBuffer));
 
-            listener.BeginAcceptTcpClient(AcceptClientCallback, listener);
+            try
+            {
+                listener.BeginAcceptTcpClient(AcceptClientCallback, listener);
+            }
+            catch (ObjectDisposedException)
+            {
+                _console.Log("Could not reload listener for next client - object has been disposed.");
+            }
         }
 
         /// <summary>
@@ -100,8 +125,15 @@ namespace EPQMessenger.Workers
             try
             {
                 response = Protocol.GetClientResponse(received);
-                _clients.Add(response, client);      // response[0] is the username
-                new ServerCommunicationThread(client, response, _console);
+                if (App.BannedUsers.Contains(response))
+                {
+                    _console.Log("User identified as a banned user, connection denied.");
+                    client.SendSync(Protocol.GetResponseFromCode(106));
+                    client.Close();
+                    return;
+                }
+                _clients.Add(response, client);      // response contains the username
+                new ServerCommunicationThread(client, response, _console, this);
                 _console.Log("Client '{0}' finished connecting, communication thread spawned.", response);
             }
             catch (Exception e)
@@ -121,6 +153,25 @@ namespace EPQMessenger.Workers
         public static bool RemoveClient(string username)
         {
             return _clients.Remove(username);
+        }
+
+        /// <summary>
+        /// Closes a client's connection to the server and drops the connection thread.
+        /// </summary>
+        /// <param name="username">The username of the client to kick.</param>
+        /// <param name="reasonCode">The Protocol code to send to the client immediately before the kick.</param>
+        /// <returns>A bool, indicating whether or not the kick was successful.</returns>
+        public static bool DisconnectClient(string username, int reasonCode)
+        {
+            if (_clients.ContainsKey(username))
+            {
+                TcpClient client = _clients[username];
+                client.Send(Protocol.GetResponseFromCode(reasonCode));
+                client.Close();
+                StopThreads.Add(username);
+                return _clients.Remove(username);
+            }
+            else return false;
         }
 
         /// <summary>
@@ -166,6 +217,26 @@ namespace EPQMessenger.Workers
                     _console.Log("Failed to send shutdown to '{0}': {1}", pair.Key, e.Message);
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the client list to the caller.
+        /// </summary>
+        /// <returns>The client list, as a Dictionary&lt;string, TcpClient&gt;</returns>
+        public Dictionary<string, TcpClient> GetClients()
+        {
+            return _clients;
+        }
+
+        /// <summary>
+        /// Gracefully stops the server running after an error and notifies all clients.
+        /// </summary>
+        public void StopServer(string reason)
+        {
+            SendMessage("<Server>The server is restarting because " + reason + ". Your connection will be dropped. The server will be available again shortly.", "Server");
+            Thread.Sleep(50);
+            this.SendShutdown();
+            _listener.Stop();
         }
     }
 }

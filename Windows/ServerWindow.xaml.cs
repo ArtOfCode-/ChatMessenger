@@ -27,15 +27,20 @@ namespace EPQMessenger.Windows
     /// </summary>
     public partial class ServerWindow : Window
     {
-        private Server _server;
+        /// <summary>
+        /// The Server instance that this applciation is running.
+        /// </summary>
+        public Server RunningServer { get; set; }
 
         private Logger _logger;
+
+        private CommandRegistry<ServerCommand> _commands;
 
         /// <summary>
         /// Initialises a new instance of the ServerWindow class and sets up the required values and
         /// objects for use.
         /// </summary>
-        public ServerWindow()
+        public ServerWindow(bool crashRecovery)
         {
             InitializeComponent();
             _logger = new Logger();
@@ -43,11 +48,43 @@ namespace EPQMessenger.Windows
             Overlay.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#44FFFFFF"));
             this.Log("Loading Messenger::Server modules");
             this.Log("Creating Server instance...");
-            _server = new Server(this, 25958);
-            this.Log("Server instance {0} on port {1}", _server, _server.Port);
+            RunningServer = new Server(this, this.GetPort());
+            this.Log("Server instance {0} on port {1}", RunningServer, RunningServer.Port);
             this.Log("Log location: {0}", _logger.LogDirectory + "\\" + _logger.LogFile);
             new Thread(FinishLoadingThread).Start();
-            _server.Start();
+            RunningServer.Start();
+            _commands = new CommandRegistry<ServerCommand>();
+            new ServerCommands(RunningServer, _commands);
+        }
+
+        /// <summary>
+        /// Gets a port number for the server to operate on.
+        /// </summary>
+        /// <returns>An integer port number.</returns>
+        public int GetPort()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Contains("--port") || args.Contains("-p"))
+            {
+                int portIndex = (Array.IndexOf(args, "--port") == -1 ? Array.IndexOf(args, "-p") 
+                    : Array.IndexOf(args, "--port")) + 1;
+                if (portIndex > args.Length || portIndex == 0)
+                {
+                    return 25958;
+                }
+                else
+                {
+                    try
+                    {
+                        return int.Parse(args[portIndex]);
+                    }
+                    catch (Exception)
+                    {
+                        return 25958;
+                    }
+                }
+            }
+            return 25958;
         }
 
         /// <summary>
@@ -113,9 +150,27 @@ namespace EPQMessenger.Windows
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             this.Log("Start sending shutdown signals...");
-            _server.SendShutdown();
+            RunningServer.SendShutdown();
             this.Log("Shutdown signal sending complete. Shutting down.");
             Thread.Sleep(100);
+        }
+
+        private void CommandInput_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            Key key = e.Key;
+            if (key == Key.Enter)
+            {
+                string command = CommandInput.Text;
+                List<string> argsWithCommand = command.Split(' ').ToList<string>();
+                if (argsWithCommand.Count() > 0)
+                {
+                    string commandName = argsWithCommand[0];
+                    argsWithCommand.RemoveAt(0);
+                    string[] args = argsWithCommand.ToArray();
+                    this.Log("[" + commandName + "] " + _commands.Execute(commandName, args));
+                }
+                CommandInput.Text = "";
+            }
         }
     }
 }

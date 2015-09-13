@@ -25,10 +25,10 @@ namespace EPQMessenger.Workers
         /// <param name="client">The TcpClient whose communications this thread will handle.</param>
         /// <param name="username">The username of the TcpClient.</param>
         /// <param name="console">The ServerWindow object containing the output console.</param>
-        public ServerCommunicationThread(TcpClient client, string username, ServerWindow console)
+        public ServerCommunicationThread(TcpClient client, string username, ServerWindow console, Server server)
         {
             _username = username;
-            new Thread(new ParameterizedThreadStart(ThreadMethod)).Start(new ServerCommunicationState(client, console));
+            new Thread(new ParameterizedThreadStart(ThreadMethod)).Start(new ServerCommunicationState(client, console, server));
         }
 
         private void ThreadMethod(object stateObject)
@@ -37,12 +37,22 @@ namespace EPQMessenger.Workers
 
             TcpClient client = state.Client;
             ServerWindow console = state.Window;
+            Server server = state.Server;
 
             NetworkStream stream = client.GetStream();
 
             client.Send(Protocol.GetResponseFromCode(101));
 
-            while (!App.StopAllThreads)
+            Dictionary<string, TcpClient> clients = server.GetClients();
+            string users = string.Join(", ", clients.Keys);
+            string onlineMessage = string.Format("{0}\n<Server>People currently online: {1}", Protocol.GetResponseFromCode(302), users);
+
+            Thread.Sleep(50);
+            client.Send(onlineMessage);
+
+            console.Log("Sent online list to {0}: \n{1}", _username, users);
+
+            while (!App.StopAllThreads && !Server.StopThreads.Contains(_username))
             {
                 bool dataAvailable = false;
                 while (!dataAvailable && !App.StopAllThreads)
@@ -60,6 +70,11 @@ namespace EPQMessenger.Workers
                 }
                 byte[] readBuffer = new byte[client.Available];
                 stream.BeginRead(readBuffer, 0, readBuffer.Length, ReadCallback, new ServerReadState(client, readBuffer, console));
+            }
+
+            if (Server.StopThreads.Contains(_username))
+            {
+                Server.StopThreads.Remove(_username);
             }
         }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using EPQMessenger.Windows;
+using EPQMessenger.Workers;
 
 namespace EPQMessenger.States
 {
@@ -15,10 +16,13 @@ namespace EPQMessenger.States
 
         public ServerWindow Window { get; private set; }
 
-        public ServerCommunicationState(TcpClient client, ServerWindow window)
+        public Server Server { get; private set; }
+
+        public ServerCommunicationState(TcpClient client, ServerWindow window, Server server)
         {
             Client = client;
             Window = window;
+            Server = server;
         }
     }
 }
