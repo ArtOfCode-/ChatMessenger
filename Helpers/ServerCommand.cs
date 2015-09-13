@@ -36,8 +36,8 @@ namespace EPQMessenger.Helpers
         public ServerCommand(string name, bool isPrivileged, Func<string[], string> action, string help)
         {
             Name = name;
-            _commandMethod = action;
             IsPrivileged = isPrivileged;
+            _commandMethod = action;
             HelpText = help;
         }
 
