@@ -50,10 +50,13 @@ namespace EPQMessenger.Workers
             string users = string.Join(", ", clients.Keys);
             string onlineMessage = string.Format("{0}\n<Server>People currently online: {1}", Protocol.GetResponseFromCode(302), users);
 
-            Thread.Sleep(50);
+            Thread.Sleep(60);
             client.Send(onlineMessage);
 
             console.Log("Sent online list to {0}: \n{1}", _username, users);
+
+            Thread.Sleep(60);
+            Server.SendMessage(string.Format("{0} joined the chat!", _username), "Server");
 
             while (!App.StopAllThreads && !Server.StopThreads.Contains(_username))
             {
@@ -133,6 +136,7 @@ namespace EPQMessenger.Workers
                     break;
                 case 301:
                     Server.RemoveClient(_username);
+                    Server.SendMessage(string.Format("{0} left the chat.", _username), "Server");
                     console.Log("Client sent 301 Disconnecting. Client removed from list, closing resources.");
                     client.Close();
                     Thread.CurrentThread.Abort();
