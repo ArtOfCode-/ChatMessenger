@@ -181,7 +181,7 @@ namespace EPQMessenger.Workers
         /// <param name="username">The user to attribute the message to.</param>
         public static void SendMessage(string message, string username)
         {
-            _logger.LogWithoutCallerInfo(message);
+            _logger.LogWithoutCallerInfo(string.Format("[{0}] {1}", username, message));
             foreach (KeyValuePair<string, TcpClient> pair in _clients)
             {
                 try

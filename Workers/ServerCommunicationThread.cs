@@ -92,19 +92,18 @@ namespace EPQMessenger.Workers
 
             string response = Encoding.ASCII.GetString(buffer);
 
-            console.Log("Message from client {0}:\n{1}", _username, response);
-
             stream.EndRead(result);
 
             int responseCode = 0;
             try
             {
                 responseCode = Protocol.GetCodeFromResponse(response);
+                _console.Log("Message from client '{0}' with code {1}", _username, responseCode);
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 client.Send(Protocol.GetResponseFromCode(400));
-                console.Log("Could not parse response code: {0}. 400 Bad Request sent.", e.Message);
+                console.Log("Message from client '{0}' - could not parse response code. 400 Bad Request sent.", _username);
                 return;
             }
 
